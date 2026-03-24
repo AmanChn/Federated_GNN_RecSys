@@ -35,8 +35,10 @@ def sample_batch(train_dict, n_items, batch_size=512):
     )
 
 
+# def train_client(global_model, client_dict, n_users, n_items, norm_adj, device,
+                #  local_epochs=1, batch_size=512):
 def train_client(global_model, client_dict, n_users, n_items, norm_adj, device,
-                 local_epochs=1, batch_size=512):
+                 local_epochs=3, batch_size=512):
 
     # Create local model
     local_model = LightGCN(n_users, n_items, 128, norm_adj).to(device)

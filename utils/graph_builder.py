@@ -36,10 +36,15 @@ def normalize_adj_matrix(adj):
 
     rowsum = np.array(adj.sum(axis=1)).flatten()
 
-    d_inv = np.power(rowsum, -0.5)
-    d_inv[np.isinf(d_inv)] = 0.0
+    # Fix: ensure no zero division issues
+    rowsum[rowsum == 0] = 1e-10
 
-    d_mat = sp.diags(d_inv)
+    d_inv = np.power(rowsum, -0.5)
+
+    # Ensure it's 1D
+    d_inv = d_inv.flatten()
+
+    d_mat = sp.diags(d_inv, offsets=0)
 
     norm_adj = d_mat.dot(adj).dot(d_mat)
 
@@ -61,4 +66,4 @@ def convert_to_torch_sparse(adj):
 
     shape = torch.Size(adj.shape)
 
-    return torch.sparse.FloatTensor(indices, values, shape)
+    return torch.sparse_coo_tensor(indices, values, shape)
