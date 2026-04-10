@@ -68,8 +68,10 @@ for r in range(rounds):
     print(f"\n--- Federated Round {r+1} ---")
 
     client_weights = []
+    client_sizes = []
 
     for cid in tqdm(client_dicts):
+        client_dict = client_dicts[cid]
 
         weights = train_client(
             global_model,
@@ -81,9 +83,10 @@ for r in range(rounds):
         )
 
         client_weights.append(weights)
+        client_sizes.append(sum(len(v) for v in client_dict.values()))  # NEW
 
     # Aggregate
-    new_global_weights = federated_avg(client_weights)
+    new_global_weights = federated_avg(client_weights, client_sizes)
     global_model.load_state_dict(new_global_weights)
 
 
@@ -133,6 +136,26 @@ for user in tqdm(test_dict.keys()):
     precisions.append(precision)
     recalls.append(recall)
     ndcgs.append(ndcg.item())
+
+
+# 2. Move your embeddings to the device
+user_emb = user_emb.to(device)
+item_emb = item_emb.to(device)
+print("\nExample Recommendations with Explanation:\n")
+
+sample_user = list(test_dict.keys())[0]
+
+scores = torch.matmul(user_emb[sample_user], item_emb.T)
+_, recommended = torch.topk(scores, 5)
+
+recommended = recommended.cpu().numpy()
+
+print(f"User {sample_user} recommended items: {recommended}")
+
+# Explanation (simple similarity)
+for item in recommended:
+    similarity = torch.dot(user_emb[sample_user], item_emb[item]).item()
+    print(f"Item {item} → score {similarity:.4f} (high similarity to user embedding)")
 
 
 print("\nFederated Results:")

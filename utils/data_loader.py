@@ -12,19 +12,32 @@ def load_movielens32m(path="data/ml-32m/ratings.csv"):
 
     ratings = ratings[['userId', 'movieId', 'rating']]
 
+    # Sort by time (VERY IMPORTANT)
+    df = df.sort_values(by="timestamp")
+
+    # Normalize timestamp (optional but useful)
+    df['timestamp'] = (df['timestamp'] - df['timestamp'].min()) / (df['timestamp'].max() - df['timestamp'].min())
+
+
     return ratings
 
 
-def convert_to_implicit(ratings, threshold=4):
-    """
-    Convert ratings to implicit interactions
-    """
+# def convert_to_implicit(ratings, threshold=4):
+#     """
+#     Convert ratings to implicit interactions
+#     """
 
-    ratings = ratings[ratings["rating"] >= threshold]
+#     ratings = ratings[ratings["rating"] >= threshold]
 
-    ratings = ratings[['userId', 'movieId']]
+#     ratings = ratings[['userId', 'movieId']]
 
-    return ratings
+#     return ratings
+
+def convert_to_implicit(df):
+
+    df = df[df['rating'] >= 3].copy()
+
+    return df[['userId', 'movieId', 'weight']]
 
 
 def filter_users_items(df, min_user_interactions=20, min_item_interactions=20, max_users=50000):
@@ -56,6 +69,8 @@ def encode_ids(df):
 
     user_map = {u: i for i, u in enumerate(df['userId'].unique())}
     item_map = {i: j for j, i in enumerate(df['movieId'].unique())}
+
+    df.rename(columns={'userId': 'user', 'movieId': 'item'}, inplace=True)
 
     df['user'] = df['userId'].map(user_map)
     df['item'] = df['movieId'].map(item_map)
