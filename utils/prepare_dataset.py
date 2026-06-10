@@ -1,8 +1,6 @@
 import pickle
 from data_loader import *
 
-print("Loading dataset...")
-
 ratings = load_movielens32m()
 
 print("Original size:", len(ratings))
@@ -15,7 +13,7 @@ ratings = filter_users_items(ratings)
 
 print("After filtering:", len(ratings))
 
-ratings, n_users, n_items = encode_ids(ratings)
+ratings, n_users, n_items, user_map, item_map = encode_ids(ratings)
 
 print("Users:", n_users)
 print("Items:", n_items)
@@ -31,6 +29,17 @@ print("Dataset preparation complete.")
 
 
 with open("data/processed_data.pkl", "wb") as f:
-    pickle.dump((train_df, test_df, n_users, n_items, train_dict), f)
+    pickle.dump(
+    (
+        train_df,
+        test_df,
+        n_users,
+        n_items,
+        train_dict,
+        user_map,
+        item_map
+    ),
+    f
+)
 
 print("Saved processed dataset!")          

@@ -15,7 +15,15 @@ from server.fedavg import federated_avg
 print("Loading dataset...")
 
 with open("data/processed_data.pkl", "rb") as f:
-    train_df, test_df, n_users, n_items, train_dict = pickle.load(f)
+    (
+        train_df,
+        test_df,
+        n_users,
+        n_items,
+        train_dict,
+        user_map,
+        item_map
+    ) = pickle.load(f)
 
 
 print("Creating clients...")
@@ -41,7 +49,7 @@ client_weights = []
 
 for cid in client_dicts:
 
-    weights = train_client(
+    weights, local_loss = train_client(
         global_model,
         client_dicts[cid],
         n_users,
@@ -55,7 +63,19 @@ for cid in client_dicts:
 
 print("Performing Federated Averaging...")
 
-new_global_weights = federated_avg(client_weights)
+client_sizes = []
+
+for cid in client_dicts:
+    client_dict = client_dicts[cid]
+
+    client_sizes.append(
+        sum(len(v) for v in client_dict.values())
+    )
+
+new_global_weights = federated_avg(
+    client_weights,
+    client_sizes
+)
 
 global_model.load_state_dict(new_global_weights)
 

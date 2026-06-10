@@ -3,41 +3,39 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 
-def load_movielens32m(path="data/ml-32m/ratings.csv"):
+def load_movielens32m():
     """
-    Load MovieLens 32M dataset
+    Load MovieLens 32M ratings dataset
     """
 
-    ratings = pd.read_csv(path)
+    print("Loading dataset...")
 
-    ratings = ratings[['userId', 'movieId', 'rating']]
+    # First load CSV
+    df = pd.read_csv("data/ml-32m/ratings.csv")
 
-    # Sort by time (VERY IMPORTANT)
+    # THEN sort by timestamp
     df = df.sort_values(by="timestamp")
 
-    # Normalize timestamp (optional but useful)
-    df['timestamp'] = (df['timestamp'] - df['timestamp'].min()) / (df['timestamp'].max() - df['timestamp'].min())
+    # Optional normalization
+    df['timestamp'] = (
+        df['timestamp'] - df['timestamp'].min()
+    ) / (
+        df['timestamp'].max() - df['timestamp'].min()
+    )
 
+    return df
 
-    return ratings
-
-
-# def convert_to_implicit(ratings, threshold=4):
-#     """
-#     Convert ratings to implicit interactions
-#     """
-
-#     ratings = ratings[ratings["rating"] >= threshold]
-
-#     ratings = ratings[['userId', 'movieId']]
-
-#     return ratings
 
 def convert_to_implicit(df):
+    """
+    Convert explicit ratings to implicit feedback
+    """
 
+    # Keep only positive interactions
     df = df[df['rating'] >= 3].copy()
 
-    return df[['userId', 'movieId', 'weight']]
+    # Keep only required columns
+    return df[['userId', 'movieId']]
 
 
 def filter_users_items(df, min_user_interactions=20, min_item_interactions=20, max_users=50000):
@@ -70,15 +68,14 @@ def encode_ids(df):
     user_map = {u: i for i, u in enumerate(df['userId'].unique())}
     item_map = {i: j for j, i in enumerate(df['movieId'].unique())}
 
-    df.rename(columns={'userId': 'user', 'movieId': 'item'}, inplace=True)
-
     df['user'] = df['userId'].map(user_map)
     df['item'] = df['movieId'].map(item_map)
 
     n_users = len(user_map)
     n_items = len(item_map)
 
-    return df[['user','item']], n_users, n_items
+    # return df[['user', 'item']], n_users, n_items
+    return df[['user','item']], n_users, n_items, user_map, item_map
 
 
 def split_train_test(df, test_ratio=0.2):

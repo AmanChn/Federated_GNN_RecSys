@@ -72,4 +72,5 @@ def train_client(global_model, client_dict, n_users, n_items, norm_adj, device,
 
             total_loss += loss.item()
 
-    return local_model.state_dict()
+    avg_local_loss = total_loss / 50
+    return local_model.state_dict(), avg_local_loss

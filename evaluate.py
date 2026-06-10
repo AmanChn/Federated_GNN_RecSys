@@ -37,7 +37,15 @@ def ndcg_at_k(recommended, ground_truth, k):
 print("Loading processed dataset...")
 
 with open("data/processed_data.pkl", "rb") as f:
-    train_df, test_df, n_users, n_items, train_dict = pickle.load(f)
+    (
+        train_df,
+        test_df,
+        n_users,
+        n_items,
+        train_dict,
+        user_map,
+        item_map
+    ) = pickle.load(f)
 
 test_dict = build_interaction_dict(test_df)
 
